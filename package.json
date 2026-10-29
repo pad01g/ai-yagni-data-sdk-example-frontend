@@ -1,0 +1,27 @@
+{
+  "name": "ai-yagni-data-sdk-example-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "EC の例の利用者向けフロントエンド（Vite + React + TypeScript の SPA。SSR なし）",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -p . && vite build",
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

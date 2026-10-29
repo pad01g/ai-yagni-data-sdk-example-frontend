@@ -1,0 +1,49 @@
+:root {
+  --bg: #fafaf7;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --line: #ddddd5;
+  --accent: #2f6f4f;
+  --error: #b3261e;
+  font-family: system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161614;
+    --fg: #ecece6;
+    --muted: #a3a39b;
+    --line: #34342f;
+    --accent: #7cc3a0;
+    --error: #f2b8b5;
+  }
+}
+
+body { margin: 0; background: var(--bg); }
+.page { max-width: 960px; margin: 0 auto; padding: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+h1 { font-size: 1.4rem; margin: 0; }
+nav { display: flex; flex-wrap: wrap; gap: 4px; }
+button { font: inherit; padding: 6px 12px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+button[aria-current="true"] { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.link { border: none; color: var(--accent); padding: 0; margin-top: 8px; }
+input, select { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; }
+.notice { border: 1px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.error { color: var(--error); }
+.hint { color: var(--muted); font-size: 0.9rem; }
+.products { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.products li { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.products h2 { font-size: 1.05rem; margin: 0 0 4px; }
+.price { font-weight: 600; }
+.stock { color: var(--muted); font-size: 0.9rem; }
+.cart { width: 100%; border-collapse: collapse; }
+.cart th, .cart td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.cart input { width: 4em; }
+.total { font-weight: 600; }
+.checkout, .account { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+.orders { list-style: none; padding: 0; }
+.orders > li { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.orders h2 { font-size: 1.05rem; margin: 0; }
