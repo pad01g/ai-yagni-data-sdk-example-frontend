@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import type { Product } from "./api.ts";
-import { MAX_QUANTITY, add, limitOf, lines, parseQuantity, quantityOf, refresh, remove, setQuantity, total } from "./cart.ts";
+import { MAX_QUANTITY, add, limitOf, lines, parseCart, parseQuantity, quantityOf, refresh, remove, setQuantity, total } from "./cart.ts";
 
 const product = (id: number, price: number, stock = 10): Product =>
   ({ id, code: `P-${id}`, name: `商品 ${id}`, description: "", price, stock });
@@ -89,5 +89,13 @@ describe("cart", () => {
   test("the displayed total is price times quantity", () => {
     const c = add(add([], product(1, 2500), 2), product(2, 1200));
     expect(total(c)).toBe(6200);
+  });
+
+  test("a saved cart is read back only when it has the right shape", () => {
+    const c = add([], product(1, 100), 2);
+    expect(parseCart(JSON.stringify(c))).toEqual(c);
+    expect(parseCart(null)).toEqual([]);
+    expect(parseCart("[{}]")).toEqual([]);
+    expect(parseCart("not json")).toEqual([]);
   });
 });

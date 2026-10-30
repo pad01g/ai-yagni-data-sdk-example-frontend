@@ -46,10 +46,13 @@ export interface OrderLine {
 /** status が 0 なら、サーバーに届かなかった（通信の失敗）。 */
 export class ApiError extends Error {
   readonly status: number;
+  /** backend が付ける決まった名前（payment_conflict など）。ふるまいを決めるのに使う。 */
+  readonly code: string | null;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code: string | null = null) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -102,7 +105,8 @@ async function call<T>(method: string, path: string, body?: unknown, { session =
   const data: unknown = await r.json().catch(() => ({}));
   if (!r.ok) {
     if (r.status === 401 && session) unauthorized();
-    throw new ApiError(r.status, failureMessage(r.status, data, r.statusText));
+    const code = typeof data === "object" && data !== null && "code" in data && typeof data.code === "string" ? data.code : null;
+    throw new ApiError(r.status, failureMessage(r.status, data, r.statusText), code);
   }
   return data as T;
 }

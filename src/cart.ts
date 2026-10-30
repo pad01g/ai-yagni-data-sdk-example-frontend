@@ -79,3 +79,25 @@ export function total(cart: Cart): number {
 export function lines(cart: Cart): OrderLine[] {
   return cart.map((l) => ({ product_id: l.product.id, quantity: l.quantity }));
 }
+
+/** 保存しておいたカート（sessionStorage から読んだ値）。形が違えば空。価格と在庫は、商品を読み直したら refresh で合わせる。 */
+export function parseCart(raw: string | null): Cart {
+  if (raw === null) return [];
+  try {
+    const v: unknown = JSON.parse(raw);
+    if (!Array.isArray(v)) return [];
+    const ok = (l: unknown): l is CartLine => {
+      if (typeof l !== "object" || l === null || !("product" in l) || !("quantity" in l)) return false;
+      const p = l.product;
+      return (
+        typeof l.quantity === "number" && Number.isInteger(l.quantity) && l.quantity >= 1 &&
+        typeof p === "object" && p !== null && "id" in p && typeof p.id === "number" &&
+        "name" in p && typeof p.name === "string" && "price" in p && typeof p.price === "number" &&
+        "stock" in p && typeof p.stock === "number"
+      );
+    };
+    return v.every(ok) ? v : [];
+  } catch {
+    return [];
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "ai-yagni-data-sdk-example-frontend",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "EC の例の利用者向けフロントエンド（Vite + React + TypeScript の SPA。SSR なし）",
   "license": "MIT",

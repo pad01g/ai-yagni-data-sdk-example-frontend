@@ -13,6 +13,8 @@ export function CartView(props: {
 }) {
   const { cart, me, checkout, onChange, onLogin } = props;
   const { busy } = checkout;
+  // 前の依頼の結果が分からないあいだは、中身を変えさせない（変えると別の注文になる）
+  const frozen = busy || checkout.locked;
   if (cart.length === 0) {
     return (
       <section>
@@ -37,13 +39,13 @@ export function CartView(props: {
                   value={l.quantity}
                   max={limitOf(l.product)}
                   label={`${l.product.name} の数量`}
-                  disabled={busy}
+                  disabled={frozen}
                   onCommit={(q) => onChange(setQuantity(cart, l.product.id, q))}
                 />
               </td>
               <td>{yen(l.product.price * l.quantity)}</td>
               <td>
-                <button disabled={busy} onClick={() => onChange(remove(cart, l.product.id))} aria-label={`${l.product.name} を削除`}>
+                <button disabled={frozen} onClick={() => onChange(remove(cart, l.product.id))} aria-label={`${l.product.name} を削除`}>
                   削除
                 </button>
               </td>
@@ -62,7 +64,7 @@ export function CartView(props: {
           <p>お届け先: {me.address}</p>
           <label>
             カード{" "}
-            <select value={checkout.card} disabled={busy} onChange={(e) => checkout.setCard(e.target.value)}>
+            <select value={checkout.card} disabled={frozen} onChange={(e) => checkout.setCard(e.target.value)}>
               {CARDS.map((c) => (
                 <option key={c.token} value={c.token}>{c.label}</option>
               ))}
@@ -70,6 +72,11 @@ export function CartView(props: {
           </label>
           <button disabled={busy} onClick={() => void checkout.place()}>注文を確定する</button>
           {checkout.error !== null && <p className="error">{checkout.error}</p>}
+          {checkout.locked && !busy && (
+            <button className="link" onClick={checkout.abandon}>
+              この注文をやめて、カートを変える（支払いが済んでいなければ、注文はあとで取り消されます）
+            </button>
+          )}
         </div>
       )}
     </section>

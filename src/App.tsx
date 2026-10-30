@@ -5,12 +5,15 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiError, type Customer, type Product, api, errorMessage, onUnauthorized, yen } from "./api.ts";
-import { type Cart, add, quantityOf, refresh } from "./cart.ts";
+import { type Cart, add, parseCart, quantityOf, refresh } from "./cart.ts";
 import { Account } from "./components/Account.tsx";
 import { CartView } from "./components/CartView.tsx";
 import { Orders } from "./components/Orders.tsx";
 import { Products } from "./components/Products.tsx";
+import { load, save } from "./storage.ts";
 import { useCheckout } from "./useCheckout.ts";
+
+const CART_STORE = "cart";
 
 type View = "products" | "cart" | "orders" | "account";
 
@@ -18,7 +21,8 @@ export function App() {
   const [view, setView] = useState<View>("products");
   const [me, setMe] = useState<Customer | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<Cart>([]);
+  const [cart, setCart] = useState<Cart>(() => parseCart(load(CART_STORE)));
+  useEffect(() => save(CART_STORE, cart.length > 0 ? JSON.stringify(cart) : null), [cart]);
   const [notice, setNotice] = useState<string | null>(null);
 
   // セッションが切れていたら（ログインが要る API の 401）、ログインしていない状態にする
@@ -85,6 +89,10 @@ export function App() {
           <Products
             products={products}
             onAdd={(p) => {
+              if (checkout.locked) {
+                setNotice("前の注文の結果を確かめています。カートの注文を確定するか、やめてから商品を足してください");
+                return;
+              }
               const before = quantityOf(cart, p.id);
               const next = add(cart, p);
               setCart(next);

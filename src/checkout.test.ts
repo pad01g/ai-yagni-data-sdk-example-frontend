@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { ApiError, type Order } from "./api.ts";
-import { basisOf, follow, fresh, outcomeOf, settle } from "./checkout.ts";
+import { basisOf, follow, fresh, outcomeOf, parseStored, settle } from "./checkout.ts";
 
 /** k1, k2, … を順に返す。 */
 function keys(): () => string {
@@ -42,12 +42,12 @@ describe("request key", () => {
     expect(new Set([a.key, b.key, back.key]).size).toBe(3);
   });
 
-  test("outcomes: 2xx is accepted or pending, 4xx is rejected, the rest is unknown", () => {
+  test("outcomes: 2xx is accepted, 4xx is rejected, the rest and a payment conflict are unknown", () => {
     expect(outcomeOf({ order: order("paid") })).toBe("accepted");
-    expect(outcomeOf({ order: order("pending") })).toBe("pending");
     expect(outcomeOf({ error: new ApiError(400, "x") })).toBe("rejected");
     expect(outcomeOf({ error: new ApiError(401, "x") })).toBe("rejected");
     expect(outcomeOf({ error: new ApiError(409, "x") })).toBe("rejected");
+    expect(outcomeOf({ error: new ApiError(409, "x", "payment_conflict") })).toBe("unknown");
     expect(outcomeOf({ error: new ApiError(500, "x") })).toBe("unknown");
     expect(outcomeOf({ error: new ApiError(503, "x") })).toBe("unknown");
     expect(outcomeOf({ error: new ApiError(0, "x") })).toBe("unknown");
@@ -61,14 +61,27 @@ describe("request key", () => {
       const next = settle(s, s.key, outcome, k);
       expect(next.key).not.toBe(s.key);
       expect(next.basis).toBe(s.basis);
+      expect(next.unsettled).toBe(false);
     }
   });
 
-  test("an unknown outcome or a pending payment keeps the key for a retry", () => {
+  test("an unknown outcome keeps the key, marks it unsettled and holds it even if the cart changes", () => {
     const k = keys();
     const s = fresh(basisOf(cartA, "tok_visa", "a@example.com"), k);
-    expect(settle(s, s.key, "unknown", k)).toBe(s);
-    expect(settle(s, s.key, "pending", k)).toBe(s);
+    const kept = settle(s, s.key, "unknown", k);
+    expect(kept.unsettled).toBe(true);
+    expect(kept.key).toBe(s.key);
+    expect(follow(kept, basisOf(cartB, "tok_visa", "a@example.com"), k)).toBe(kept);
+    // 決着すれば作り直す
+    expect(settle(kept, kept.key, "accepted", k).unsettled).toBe(false);
+  });
+
+  test("a stored key is read back only when it has the right shape", () => {
+    const s = { key: "k", basis: "b", unsettled: true };
+    expect(parseStored(JSON.stringify(s))).toEqual(s);
+    expect(parseStored(null)).toBeNull();
+    expect(parseStored("{")).toBeNull();
+    expect(parseStored(JSON.stringify({ key: 1 }))).toBeNull();
   });
 
   test("a result for a key that was already rotated changes nothing", () => {
